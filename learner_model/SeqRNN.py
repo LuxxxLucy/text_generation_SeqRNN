@@ -19,10 +19,12 @@ embed_dim=10
 
 from keras import backend as K
 def relative_error(y_true, y_pred):
+    '''
+    define a customized metric for testing
+    '''
     return K.abs(y_true-y_pred) / K.abs(y_true)
 
 class Sequence_RNN_Model_Session(ModelSession):
-
 
     @staticmethod
     def create_graph():
@@ -36,7 +38,7 @@ class Sequence_RNN_Model_Session(ModelSession):
 
     @staticmethod
     def compile_model(model):
-        model.compile(optimizer='sgd',
+        model.compile(optimizer='adam',
                       loss='mean_squared_error',
                       metrics=[relative_error])
         return model

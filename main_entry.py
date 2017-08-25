@@ -109,7 +109,7 @@ def train(args):
     model_path_name=path.join(args.model_directory,args.model_file_name)
     print(model_path_name)
 
-    if os.path.exists(model_path_name):
+    if os.path.exists(model_path_name) and args.load_params == True :
         try:
             model = model_session.restore(model_path_name)
         except:
@@ -120,7 +120,11 @@ def train(args):
             model.args=args
     else:
         os.makedirs(model_path_name)
-        print("There is no model exists in modelpath, so create a new model")
+        if os.path.exists(model_path_name) == False:
+            print("there is no previous file")
+        if args.load_params == False:
+            print("deliberately do want to laod a previous model")
+        print("create a new model")
         model = model_session.create()
         model.summary()
     print(model)
@@ -149,16 +153,6 @@ def train(args):
             iteration+=1
     print("Final model %s" % model)
     model_session.save(model,model_path_name)
-
-    print(" restored from file")
-    model_new = model_session.restore(model_path_name)
-    score = model_new.evaluate(test_data.data, test_data.labels,batch_size=args.batch_size)
-    print(" validation score ",score)
-    result=model_new.predict_on_batch(test_data.data[:20])
-    print("raw:",test_data.data[:20])
-    print("truth:",test_data.labels[:20])
-    print("prediction:",result)
-
 
 def test(args):
     model_path_name=path.join(args.model_directory,args.model_file_name)
