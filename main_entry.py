@@ -13,7 +13,7 @@ ITEM_DIM=100
 dir_path = path.dirname(path.dirname(path.dirname(path.realpath(__file__))))
 sys.path.append(dir_path)
 
-from meta_model import settings
+import settings
 # -----------------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser()
@@ -23,7 +23,7 @@ def main():
                         help='Location for parameter checkpoints and samples')
     parser.add_argument('--model_file_name', type=str, default='seq_rnn',
                         help='model file name (will create a separated folder)')
-    parser.add_argument('--data_set', type=str, default='fake_seq',
+    parser.add_argument('--data_set', type=str, default='linux_data',
                         help='Can be fake_seq | quick_draw')
 
     parser.add_argument('--checkpoint_interval', type=int, default=20,
@@ -80,7 +80,7 @@ def main():
 
 
 def train(args):
-    class_num = {'quick_draw': 10,'fake_seq':1}[args.data_set]
+    class_num = {'quick_draw': 10,'fake_seq':1,'linux_data':101}[args.data_set]
 
     # initialize data loaders for train/test splits
     # data loader
@@ -98,6 +98,22 @@ def train(args):
         print('start loading dataset',args.data_set)
         train_data = fake_seq_data.DataLoader(args,'train')
         test_data = fake_seq_data.DataLoader(args,'test')
+        print('dataset',args.data_set,'loading completed')
+        from learner_model.SeqRNN import Sequence_RNN_Model_Session as model_session
+        print('import seq RNN model okay')
+    elif args.data_set == 'linux_data':
+        import data.linux_code_data as linux_code_data
+        print('start loading dataset',args.data_set)
+        train_data = linux_code_data.DataLoader(args,'train')
+        test_data = linux_code_data.DataLoader(args,'test')
+        print('dataset',args.data_set,'loading completed')
+        from learner_model.SeqRNN import Sequence_RNN_Model_Session as model_session
+        print('import seq RNN model okay')
+    elif args.data_set == 'shakespeare_data':
+        import data.shakespeare_data as shakespeare_data
+        print('start loading dataset',args.data_set)
+        train_data = linux_code_data.DataLoader(args,'train')
+        test_data = linux_code_data.DataLoader(args,'test')
         print('dataset',args.data_set,'loading completed')
         from learner_model.SeqRNN import Sequence_RNN_Model_Session as model_session
         print('import seq RNN model okay')

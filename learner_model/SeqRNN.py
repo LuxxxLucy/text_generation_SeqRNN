@@ -5,7 +5,7 @@ The core model
 import os
 from os import path
 import time
-from meta_model import settings
+import settings
 
 import keras
 from keras.models import Model
