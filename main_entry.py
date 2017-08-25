@@ -7,6 +7,7 @@ import time
 import json
 import argparse
 import numpy as np
+from pprint import pprint as pr
 
 ITEM_DIM=100
 
@@ -81,31 +82,16 @@ def main():
 
 def train(args):
     class_num = {'quick_draw': 10,'fake_seq':1,'linux_data':101}[args.data_set]
+    args.class_num=class_num
 
     # initialize data loaders for train/test splits
     # data loader
 
     print(args.data_set)
-    if args.data_set == 'quick_draw':
-        import data.quick_draw_data as quick_draw_data
-        print('start loading dataset',args.data_set)
-        dataLoader = quick_draw_data.DataLoader(args)
-        print('dataset',args.data_set,'loading completed')
-        from learner_model.SketchRNN import Sketch_RNN_Model_Session as model_session
-        print('import Sketch RNN model okay')
-    elif args.data_set == 'fake_seq':
-        import data.fake_seq_data as fake_seq_data
-        print('start loading dataset',args.data_set)
-        train_data = fake_seq_data.DataLoader(args,'train')
-        test_data = fake_seq_data.DataLoader(args,'test')
-        print('dataset',args.data_set,'loading completed')
-        from learner_model.SeqRNN import Sequence_RNN_Model_Session as model_session
-        print('import seq RNN model okay')
-    elif args.data_set == 'linux_data':
+    if args.data_set == 'linux_data':
         import data.linux_code_data as linux_code_data
         print('start loading dataset',args.data_set)
         train_data = linux_code_data.DataLoader(args,'train')
-        test_data = linux_code_data.DataLoader(args,'test')
         print('dataset',args.data_set,'loading completed')
         from learner_model.SeqRNN import Sequence_RNN_Model_Session as model_session
         print('import seq RNN model okay')
@@ -121,9 +107,10 @@ def train(args):
         print('this dataset is not available , or the dataset name not correct')
         quit()
 
-
     model_path_name=path.join(args.model_directory,args.model_file_name)
     print(model_path_name)
+    file_path_name=path.join(args.model_directory,args.model_file_name+"Gen")
+
 
     if os.path.exists(model_path_name) and args.load_params == True :
         try:
@@ -132,18 +119,25 @@ def train(args):
             print("error happens, now remove the original folder name from",model_path_name)
             shutil.rmtree(model_path_name)
             os.makedirs(model_path_name)
-            model = model_session.create()
-            model.args=args
+            model = model_session.create(class_num=len(train_data.dictionary))
+            session = model_session(model,args)
     else:
-        os.makedirs(model_path_name)
+        try:
+            os.makedirs(model_path_name)
+        except:
+            print("directory okay")
+
         if os.path.exists(model_path_name) == False:
             print("there is no previous file")
         if args.load_params == False:
             print("deliberately do want to laod a previous model")
         print("create a new model")
-        model = model_session.create()
-        model.summary()
+        model = model_session.create(class_num=len(train_data.dictionary))
+        session = model_session(model,args)
     print(model)
+
+    session.register_dictionary(train_data.dictionary)
+    session.register_index(train_data.index)
 
     if args.training_num is None:
         args.training_num = train_data.record_num
@@ -153,19 +147,19 @@ def train(args):
     iteration=0
 
     for iEpoch in range(args.training_epoch):
-        for x, y in train_data:
+        for data in train_data:
             # x, y = training_data.next_batch(args.batch_size)
+            x=data
+            session.train(x)
 
-            # Train the model
-            model.train_on_batch(x, y)
             if iteration % args.report_interval == 0:
-                score = model.evaluate(x, y, batch_size=args.batch_size)
+                score = session.evaluate(data, batch_size=args.batch_size)
                 print(" training batch score" , score)
             if iteration % args.validation_interval == 0:
-                score = model.evaluate(test_data.data, test_data.labels,batch_size=args.batch_size)
-                print(" validation score" ,score)
+                session.generate(random_sentence_start=x,file_directory=file_path_name)
             if iteration % args.checkpoint_interval == 0:
-                model_session.save(model,model_path_name)
+                session.save(model_path_name)
+
             iteration+=1
     print("Final model %s" % model)
     model_session.save(model,model_path_name)

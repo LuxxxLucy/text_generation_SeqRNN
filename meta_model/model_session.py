@@ -4,7 +4,7 @@ from keras.models import load_model
 
 class ModelSession(object):
     """
-    A object model of keras
+    A OOP style object of keras
 
     The model's graph structure is defined by overriding the create_graph function.
     """
@@ -23,7 +23,6 @@ class ModelSession(object):
         """
         self.args=args
         self.model=None
-        self.model=self.compile(model)
 
     @classmethod
     def create(cls, **kwargs):
@@ -64,8 +63,7 @@ class ModelSession(object):
         """
         raise NotImplementedError
 
-    @classmethod
-    def restore(cls, checkpoint_directory,cus=None):
+    def restore(self, checkpoint_directory,cus=None):
         """
         Restore a serialized model session.
 
@@ -76,12 +74,11 @@ class ModelSession(object):
         """
 
         path=os.path.join(checkpoint_directory,'model.h5')
-        model = load_model(path,custom_objects=cus)
-        return cls.compile_model(model)
+        self.model = load_model(path,custom_objects=cus)
+        return self.compile_model(model)
 
 
-    @classmethod
-    def save(cls,model, checkpoint_directory):
+    def save(self, checkpoint_directory):
         """
         Save the current model session to a checkpoint file.
 
@@ -96,7 +93,10 @@ class ModelSession(object):
         path=os.path.join(checkpoint_directory,'model.h5')
 
         try:
-            model.save(path)
+            self.model.save(path)
             return "save okay!"
         except:
             return "Fatal error! Saving failed"
+
+    def summary(self):
+        self.model.summary()

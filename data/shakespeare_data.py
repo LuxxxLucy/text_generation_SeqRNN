@@ -8,6 +8,7 @@ import numpy as np
 import pickle
 from os import path
 from pathlib import Path
+from nltk.tokenize import wordpunct_tokenize
 import settings
 import random
 
@@ -31,25 +32,26 @@ class DataLoader(object):
         self.p=0
 
         # now construct data set
-        with open(DATA_PATH,'rb') as f:
+        with open(DATA_PATH,'r') as f:
             text = f.read()
         # determine size of the data set
+        text=wordpunct_tokenize(text)
         word_set= [ it for it in set(text)]
         total_num=len(word_set)
 
         val_portion=args.val_portion
         if kind=='train':
-            print("The number of all characters is", len(text))
+            print("The number of all words is", len(text))
             self.record_num=len(text)
         elif kind=='test':
             print("not available as test. FATAL error, quit now")
             quit()
 
 
-        self.dictionary={ it : chr(word_set[it]) for it in range(total_num) }
-        self.index={ chr(word_set[it]):it for it in range(total_num) }
+        self.dictionary={ it : (word_set[it]) for it in range(total_num) }
+        self.index={ (word_set[it]):it for it in range(total_num) }
 
-        self.data=[ self.index[chr(it)] for it in text]
+        self.data=[ self.index[(it)] for it in text]
 
     def record_num(self):
         return self.record_num
