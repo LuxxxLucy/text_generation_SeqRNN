@@ -27,9 +27,9 @@ def main():
     parser.add_argument('--data_set', type=str, default='linux_data',
                         help='Can be fake_seq | quick_draw')
 
-    parser.add_argument('--checkpoint_interval', type=int, default=20,
+    parser.add_argument('--checkpoint_interval', type=int, default=1,
                         help='Every how many epochs to write checkpoint/samples?')
-    parser.add_argument('--report_interval', type=int, default=1,
+    parser.add_argument('--report_interval', type=int, default=20,
                         help='Every how many epochs to report current situation?')
     parser.add_argument('--validation_interval', type=int, default=50,
                         help='Every how many epochs to do validation current situation?')
@@ -154,12 +154,11 @@ def train(args):
 
             if iteration % args.report_interval == 0:
                 score = session.evaluate(data, batch_size=args.batch_size)
-                print(" training batch score" , score)
+                # print(" training batch score" , score)
             if iteration % args.validation_interval == 0:
                 session.generate(random_sentence_start=x,file_directory=file_path_name)
             if iteration % args.checkpoint_interval == 0:
                 session.save(model_path_name)
-
             iteration+=1
     print("Final model %s" % model)
     model_session.save(model,model_path_name)
